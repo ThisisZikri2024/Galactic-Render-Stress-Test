@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omniverse Engine v3.2 | OVERDRIVE UNLOCKED</title>
+    <title>Omniverse Engine v3.2 | Unlimited FPS & Touch</title>
     <style>
         /* =========================================
-           1. CORE SYSTEM ARCHITECTURE
+           1. CORE SYSTEM ARCHITECTURE (CSS)
            =========================================
         */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;500&display=swap');
@@ -31,10 +31,17 @@
             color: #ffffff;
             font-family: 'JetBrains Mono', monospace;
             overflow: hidden;
-            touch-action: none;
+            touch-action: none; /* Crucial for mobile benchmark */
         }
 
-        /* --- RGB PARTICLE ENGINE --- */
+        /* --- BACKGROUND ENGINE --- */
+        #nebula-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; opacity: 0.4;
+            background: radial-gradient(circle at center, #0a0a20 0%, #020205 100%);
+        }
+
+        /* --- RGB PARTICLE ENGINE (40s PERSISTENCE) --- */
         .stardust-particle {
             position: fixed; border-radius: 50%; pointer-events: none; z-index: 999;
             animation: particle-death 40s cubic-bezier(0.1, 0, 0.9, 1) forwards, 
@@ -43,7 +50,7 @@
 
         @keyframes particle-death {
             0% { transform: scale(2.5); opacity: 1; filter: blur(0px); }
-            100% { transform: scale(0); translateY(150px); opacity: 0; filter: blur(8px); }
+            100% { transform: scale(0) translateY(200px); opacity: 0; filter: blur(10px); }
         }
 
         @keyframes rgb-cycle {
@@ -64,11 +71,12 @@
             background: var(--panel-bg);
             border: 1px solid rgba(0, 210, 255, 0.3);
             padding: 15px; backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
         }
 
         #top-left-hud { top: 20px; left: 20px; border-left: 5px solid var(--neon-blue); }
         #top-right-hud { top: 20px; right: 20px; border-right: 5px solid var(--neon-pink); text-align: right; }
-        #bottom-left-hud { bottom: 90px; left: 20px; width: 280px; height: 140px; }
+        #bottom-left-hud { bottom: 90px; left: 20px; width: 280px; height: 150px; }
 
         .glitch-text {
             font-family: 'Orbitron', sans-serif;
@@ -77,14 +85,14 @@
             letter-spacing: 2px;
         }
 
-        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; }
-        .stat-value { font-size: 0.9rem; color: #fff; font-weight: bold; }
+        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 2px; }
+        .stat-value { font-size: 0.95rem; color: #fff; font-weight: bold; }
 
         /* --- SETTINGS SIDEBAR --- */
         #sidebar {
             position: fixed; top: 0; right: -100%; width: 340px; height: 100%;
             background: rgba(2, 2, 5, 0.98); border-left: 2px solid var(--neon-pink);
-            z-index: 1000; transition: 0.4s ease-in-out;
+            z-index: 1000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             padding: 60px 30px; overflow-y: auto;
         }
 
@@ -92,8 +100,8 @@
 
         .setting-group { margin-bottom: 35px; }
         .setting-group h3 { 
-            font-family: 'Orbitron'; font-size: 0.8rem; color: var(--neon-pink); 
-            margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;
+            font-family: 'Orbitron'; font-size: 0.85rem; color: var(--neon-pink); 
+            margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 8px;
         }
 
         .action-btn {
@@ -103,26 +111,29 @@
             border-radius: 4px;
         }
 
-        .action-btn:active { transform: scale(0.98); background: var(--neon-blue); color: #000; }
+        .action-btn:hover, .action-btn:active { background: rgba(0, 210, 255, 0.15); border-color: var(--neon-blue); }
         .action-btn.active { background: var(--neon-blue); color: #000; border-color: var(--neon-blue); font-weight: bold; }
 
         #toggle-config {
             position: fixed; bottom: 20px; right: 20px;
             background: var(--neon-pink); color: #fff; padding: 15px 30px;
             font-family: 'Orbitron'; font-weight: bold; border: none;
-            cursor: pointer; z-index: 1001; box-shadow: 0 0 25px rgba(255, 0, 122, 0.5);
+            cursor: pointer; z-index: 1001; box-shadow: 0 0 25px rgba(255, 0, 122, 0.6);
+            border-radius: 5px;
         }
 
         /* --- VIEWPORT ENGINE --- */
         #galaxy-viewport {
             width: 100vw; height: 100vh;
             display: flex; justify-content: center; align-items: center;
+            perspective: 1500px;
         }
 
         .sun-core {
             width: 80px; height: 80px; border-radius: 50%;
             background: radial-gradient(circle, #fff, #ffae00, #ff4000);
-            box-shadow: 0 0 80px #ff6600; z-index: 50;
+            box-shadow: 0 0 80px #ff6600, 0 0 150px rgba(255, 100, 0, 0.4);
+            z-index: 50;
         }
 
         .orbit-path {
@@ -130,23 +141,36 @@
             border-radius: 50%; pointer-events: none;
         }
 
-        .planet-node { position: absolute; border-radius: 50%; cursor: pointer; }
-        .asteroid { position: absolute; background: #666; border-radius: 2px; pointer-events: none; }
+        .planet-node {
+            position: absolute; border-radius: 50%;
+            cursor: pointer; transition: transform 0.1s linear;
+        }
+
+        .asteroid {
+            position: absolute; background: #666; border-radius: 2px;
+            pointer-events: none; opacity: 0.7;
+        }
 
         /* --- TERMINAL --- */
         #terminal-output {
             height: 100px; overflow-y: hidden;
             font-size: 0.7rem; color: var(--terminal-green);
+            line-height: 1.4;
         }
 
+        /* Responsive Fixes */
         @media (max-width: 600px) {
             #sidebar { width: 100%; }
-            #bottom-left-hud { width: 220px; bottom: 80px; }
+            #bottom-left-hud { width: 220px; bottom: 85px; }
+            .sun-core { width: 60px; height: 60px; }
+            .glitch-text { font-size: 1.3rem; }
         }
 
     </style>
 </head>
 <body>
+
+    <div id="nebula-canvas"></div>
 
     <div class="hud-overlay">
         <div class="hud-panel" id="top-left-hud">
@@ -156,46 +180,51 @@
         </div>
 
         <div class="hud-panel" id="top-right-hud">
-            <div class="stat-label">ENGINE STATUS: <span id="engine-status" style="color:var(--terminal-green)">UNLOCKED</span></div>
+            <div class="stat-label">ENGINE STATUS: <span id="engine-status" style="color:var(--terminal-green)">STABLE</span></div>
             <div id="fps-meter" class="glitch-text" style="color: var(--neon-pink); font-size: 1.8rem;">0 FPS</div>
-            <div id="node-count" class="stat-label">PARTICLES: 0</div>
+            <div id="node-count" class="stat-label" style="color: #fff; margin-top: 5px;">NODES: 0</div>
         </div>
 
         <div class="hud-panel" id="bottom-left-hud">
-            <div class="stat-label" style="color: var(--terminal-green);">> OVERDRIVE_LOG</div>
+            <div class="stat-label" style="color: var(--terminal-green); border-bottom: 1px solid #1a3a1a; padding-bottom: 5px; margin-bottom: 10px;">
+                > OVERDRIVE_DIAGNOSTICS
+            </div>
             <div id="terminal-output">
-                <div>[SYS] v3.2 OVERDRIVE Ready.</div>
-                <div>[SYS] All FPS Locks Removed.</div>
-                <div>[SYS] Touch Engine Active.</div>
+                <div>[SYSTEM] v3.2 UNLOCKED...</div>
+                <div>[SYSTEM] Touch Interface Active...</div>
+                <div>[SYSTEM] 40s Persistence Set...</div>
             </div>
         </div>
     </div>
 
     <div id="galaxy-viewport">
         <div class="sun-core"></div>
-    </div>
+        </div>
 
     <button id="toggle-config" onclick="toggleSidebar()">ENGINE_MENU</button>
 
     <div id="sidebar">
-        <h2 style="font-family: 'Orbitron'; margin-bottom: 30px; color: var(--neon-blue);">BEYOND LIMITS</h2>
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 40px; color: var(--neon-blue); letter-spacing: 2px;">OMNIVERSE CONFIG</h2>
         
         <div class="setting-group">
-            <h3>SELECT REFRESH FREQUENCY</h3>
-            <button class="action-btn" id="btn-30" onclick="engine.setFPS(30)">30Hz (Power Save)</button>
-            <button class="action-btn" id="btn-60" onclick="engine.setFPS(60)">60Hz (Standard)</button>
-            <button class="action-btn active" id="btn-120" onclick="engine.setFPS(120)">120Hz (Pro Display)</button>
-            <button class="action-btn" id="btn-240" onclick="engine.setFPS(240)" style="border-color:var(--neon-pink)">MAX UNLIMITED (Override)</button>
+            <h3>QUANTUM FREQUENCY (FPS)</h3>
+            <button class="action-btn" id="btn-30" onclick="engine.setFPS(30)">30Hz - Efficient</button>
+            <button class="action-btn" id="btn-60" onclick="engine.setFPS(60)">60Hz - Standard</button>
+            <button class="action-btn active" id="btn-120" onclick="engine.setFPS(120)">120Hz - High Refresh</button>
+            <button class="action-btn" id="btn-unlimited" onclick="engine.setFPS(240)" style="border-color: var(--neon-pink);">UNLIMITED - OVERDRIVE</button>
         </div>
 
         <div class="setting-group">
-            <h3>DIAGNOSTIC DATA</h3>
-            <div class="stat-label">Touch Nodes: Supported</div>
-            <div class="stat-label">Particle Persistence: 40s</div>
-            <div class="stat-label">Garbage Collection: Active</div>
+            <h3>SENSORY DATA</h3>
+            <div class="stat-label">Touch Mode: Multi-Touch Supported</div>
+            <div class="stat-label">Particle TTL: 40,000ms</div>
+            <div class="stat-label">Friction: Zero-Gravity</div>
         </div>
 
-        <button class="action-btn" onclick="location.reload()" style="background:var(--neon-pink); color:#fff; border:none; text-align:center;">RESET ALL SYSTEMS</button>
+        <div class="setting-group">
+            <h3>HARD RESET</h3>
+            <button class="action-btn" onclick="location.reload()" style="background: var(--neon-pink); border: none; color: #fff; text-align: center; font-weight: bold;">PURGE ALL ENTITIES</button>
+        </div>
     </div>
 
     <script>
@@ -211,23 +240,26 @@
             asteroids: [],
             
             planets: [
-                { dist: 80, size: 7, speed: 0.0018, color: '#aaa', angle: Math.random()*6 },
-                { dist: 110, size: 12, speed: 0.0013, color: '#e3bb76', angle: Math.random()*6 },
-                { dist: 150, size: 14, speed: 0.0009, color: '#00d2ff', angle: Math.random()*6 },
-                { dist: 190, size: 10, speed: 0.0007, color: '#ff4000', angle: Math.random()*6 },
-                { dist: 270, size: 32, speed: 0.0004, color: '#d39c7e', angle: Math.random()*6 },
-                { dist: 350, size: 28, speed: 0.0002, color: '#c5ab6e', angle: Math.random()*6 }
+                { name: 'Utarid', dist: 85, size: 7, speed: 0.0018, color: '#aaa', angle: Math.random() * 6 },
+                { name: 'Zuhrah', dist: 120, size: 13, speed: 0.0013, color: '#e3bb76', angle: Math.random() * 6 },
+                { name: 'Bumi', dist: 165, size: 15, speed: 0.0009, color: '#00d2ff', angle: Math.random() * 6 },
+                { name: 'Marikh', dist: 210, size: 11, speed: 0.0007, color: '#ff4000', angle: Math.random() * 6 },
+                { name: 'Musytari', dist: 300, size: 34, speed: 0.0004, color: '#d39c7e', angle: Math.random() * 6 },
+                { name: 'Zuhal', dist: 390, size: 30, speed: 0.0002, color: '#c5ab6e', angle: Math.random() * 6 }
             ],
 
+            // 1. Boot-up
             init() {
                 this.generateSolarSystem();
                 this.generateAsteroids();
                 this.startClocks();
                 this.bindEvents();
                 requestAnimationFrame((t) => this.loop(t));
-                this.log("All FPS restrictions bypassed.");
+                this.log("Unlimited FPS engine online.");
+                this.log("Touch interface ready.");
             },
 
+            // 2. Galaxy Generation
             generateSolarSystem() {
                 const viewport = document.getElementById('galaxy-viewport');
                 this.planets.forEach(p => {
@@ -239,26 +271,38 @@
 
                     const el = document.createElement('div');
                     el.className = 'planet-node';
-                    el.style.width = p.size + 'px'; el.style.height = p.size + 'px';
-                    el.style.background = p.color; el.style.boxShadow = `0 0 15px ${p.color}`;
+                    el.style.width = p.size + 'px';
+                    el.style.height = p.size + 'px';
+                    el.style.background = p.color;
+                    el.style.boxShadow = `0 0 20px ${p.color}`;
                     viewport.appendChild(el);
                     p.dom = el;
                 });
             },
 
+            // 3. Asteroid Belt (Optimized for Mobile)
             generateAsteroids() {
                 const viewport = document.getElementById('galaxy-viewport');
-                const count = window.innerWidth < 600 ? 80 : 180;
+                const count = window.innerWidth < 600 ? 90 : 200;
                 for(let i=0; i<count; i++) {
                     const ast = document.createElement('div');
                     ast.className = 'asteroid';
-                    const dist = 215 + (Math.random() * 35);
-                    ast.style.width = (Math.random()*3+1)+'px'; ast.style.height = ast.style.width;
+                    const dist = 235 + (Math.random() * 40);
+                    const size = Math.random() * 3 + 1;
+                    ast.style.width = size + 'px';
+                    ast.style.height = size + 'px';
                     viewport.appendChild(ast);
-                    this.asteroids.push({ dom: ast, dist: dist, speed: (Math.random()*0.0005)+0.0001, angle: Math.random()*Math.PI*2 });
+                    
+                    this.asteroids.push({
+                        dom: ast,
+                        dist: dist,
+                        speed: (Math.random() * 0.0005) + 0.0001,
+                        angle: Math.random() * Math.PI * 2
+                    });
                 }
             },
 
+            // 4. Main Overdrive Loop
             loop(timestamp) {
                 const delta = timestamp - this.lastFrameTime;
                 const interval = 1000 / this.fps;
@@ -266,6 +310,7 @@
                 if (delta > interval) {
                     this.lastFrameTime = timestamp - (delta % interval);
                     
+                    // Planets
                     this.planets.forEach(p => {
                         p.angle += p.speed * delta;
                         const x = Math.cos(p.angle) * p.dist;
@@ -273,6 +318,7 @@
                         p.dom.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
                     });
 
+                    // Asteroids
                     this.asteroids.forEach(a => {
                         a.angle += a.speed * delta;
                         const x = Math.cos(a.angle) * a.dist;
@@ -289,17 +335,25 @@
                 requestAnimationFrame((t) => this.loop(t));
             },
 
+            // 5. Multi-Touch RGB Engine
             spawnStardust(x, y) {
                 const p = document.createElement('div');
                 p.className = 'stardust-particle';
-                p.style.left = x + 'px'; p.style.top = y + 'px';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                
                 const size = Math.random() * 6 + 2;
-                p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
                 p.style.animationDelay = `0s, -${Math.random() * 3}s`;
+                
                 document.body.appendChild(p);
+
+                // Garbage Collection after 40s (No Leaks)
                 setTimeout(() => p.remove(), 40000);
             },
 
+            // 6. Clock & Hijri System
             startClocks() {
                 const update = () => {
                     const now = new Date();
@@ -312,30 +366,37 @@
                 update();
             },
 
+            // 7. Event Handlers (Touch & Mouse)
             bindEvents() {
+                // Mouse
                 document.addEventListener('mousemove', (e) => this.spawnStardust(e.clientX, e.clientY));
+                
+                // Touch (Supports multiple fingers)
                 document.addEventListener('touchstart', (e) => {
                     Array.from(e.touches).forEach(t => this.spawnStardust(t.clientX, t.clientY));
                 }, {passive: true});
+                
                 document.addEventListener('touchmove', (e) => {
                     Array.from(e.touches).forEach(t => this.spawnStardust(t.clientX, t.clientY));
                 }, {passive: true});
             },
 
+            // 8. Performance Control
             setFPS(val) {
                 this.fps = val;
-                this.log(`Target set to ${val}Hz.`);
+                this.log(`Target: ${val === 240 ? 'Unlimited' : val + 'Hz'}`);
                 document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-                const btnId = val === 240 ? 'btn-240' : 'btn-' + val;
-                const activeBtn = document.getElementById(btnId);
-                if(activeBtn) activeBtn.classList.add('active');
                 
+                const btnId = val === 240 ? 'btn-unlimited' : 'btn-' + val;
+                document.getElementById(btnId).classList.add('active');
+
+                const status = document.getElementById('engine-status');
                 if(val > 120) {
-                    document.getElementById('engine-status').innerText = "OVERDRIVE";
-                    document.getElementById('engine-status').style.color = "var(--neon-pink)";
+                    status.innerText = "OVERDRIVE";
+                    status.style.color = "var(--neon-pink)";
                 } else {
-                    document.getElementById('engine-status').innerText = "STABLE";
-                    document.getElementById('engine-status').style.color = "var(--terminal-green)";
+                    status.innerText = "STABLE";
+                    status.style.color = "var(--terminal-green)";
                 }
             },
 
@@ -344,11 +405,14 @@
                 const div = document.createElement('div');
                 div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
                 output.prepend(div);
-                if(output.childNodes.length > 5) output.lastChild.remove();
+                if(output.childNodes.length > 7) output.lastChild.remove();
             }
         };
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
         window.onload = () => engine.init();
 
     </script>
