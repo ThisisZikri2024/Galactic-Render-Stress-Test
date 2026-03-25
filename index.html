@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omniverse Engine v3.0 | 500+ Lines</title>
+    <style>
+        /* =========================================
+           1. CORE SYSTEM ARCHITECTURE (CSS)
+           =========================================
+        */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;500&display=swap');
+
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-purple: #9d00ff;
+            --neon-pink: #ff007a;
+            --terminal-green: #00ff41;
+            --space-black: #020205;
+            --panel-bg: rgba(10, 15, 30, 0.9);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+        body, html {
+            width: 100%; height: 100%;
+            background: var(--space-black);
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        /* --- BACKGROUND ENGINE --- */
+        #nebula-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; opacity: 0.6;
+        }
+
+        /* --- RGB PARTICLE ENGINE --- */
+        .stardust-particle {
+            position: fixed; border-radius: 50%; pointer-events: none; z-index: 999;
+            animation: particle-death 40s cubic-bezier(0.1, 0, 0.9, 1) forwards, 
+                       rgb-cycle 3s linear infinite;
+        }
+
+        @keyframes particle-death {
+            0% { transform: scale(2); opacity: 1; filter: blur(0px); }
+            50% { opacity: 1; }
+            100% { transform: scale(0.1) translateY(100px); opacity: 0; filter: blur(5px); }
+        }
+
+        @keyframes rgb-cycle {
+            0% { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            33% { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
+            66% { background: #0000ff; box-shadow: 0 0 10px #0000ff; }
+            100% { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+        }
+
+        /* --- UI: HUD SYSTEM --- */
+        .hud-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+        }
+
+        .hud-panel {
+            position: absolute; pointer-events: auto;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 20px; backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        #top-left-hud { top: 30px; left: 30px; border-left: 5px solid var(--neon-blue); }
+        #top-right-hud { top: 30px; right: 30px; border-right: 5px solid var(--neon-pink); text-align: right; }
+        #bottom-left-hud { bottom: 30px; left: 30px; width: 300px; height: 180px; }
+
+        .glitch-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem; color: var(--neon-blue);
+            text-shadow: 2px 2px var(--neon-pink);
+        }
+
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 1.1rem; color: #fff; font-weight: bold; }
+
+        /* --- SETTINGS SIDEBAR --- */
+        #sidebar {
+            position: fixed; top: 0; right: -400px; width: 380px; height: 100%;
+            background: rgba(5, 5, 10, 0.98); border-left: 2px solid var(--neon-blue);
+            z-index: 1000; transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            padding: 60px 40px; overflow-y: auto;
+        }
+
+        #sidebar.open { right: 0; }
+
+        .setting-group { margin-bottom: 40px; }
+        .setting-group h3 { 
+            font-family: 'Orbitron'; font-size: 0.8rem; color: var(--neon-blue); 
+            margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px;
+        }
+
+        .action-btn {
+            width: 100%; padding: 15px; background: rgba(255,255,255,0.03);
+            border: 1px solid #333; color: #fff; font-family: 'JetBrains Mono';
+            cursor: pointer; transition: 0.3s; margin-bottom: 10px; text-align: left;
+        }
+
+        .action-btn:hover { background: rgba(0, 210, 255, 0.1); border-color: var(--neon-blue); }
+        .action-btn.active { background: var(--neon-blue); color: #000; font-weight: bold; }
+        .action-btn.locked { color: #444; border-style: dashed; }
+
+        #toggle-config {
+            position: fixed; bottom: 30px; right: 30px;
+            background: var(--neon-blue); color: #000; padding: 15px 30px;
+            font-family: 'Orbitron'; font-weight: bold; border: none;
+            cursor: pointer; z-index: 1001; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+        }
+
+        /* --- VIEWPORT ENGINE --- */
+        #galaxy-viewport {
+            width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            perspective: 1200px;
+        }
+
+        .sun-core {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: radial-gradient(circle, #fff, #ffae00, #ff4000);
+            box-shadow: 0 0 120px #ff6600, 0 0 200px rgba(255, 100, 0, 0.3);
+            z-index: 50;
+        }
+
+        .orbit-path {
+            position: absolute; border: 1px solid rgba(0, 210, 255, 0.08);
+            border-radius: 50%; pointer-events: none;
+        }
+
+        .planet-node {
+            position: absolute; border-radius: 50%;
+            cursor: pointer; transition: 0.3s;
+        }
+
+        .asteroid {
+            position: absolute; background: #555; border-radius: 2px;
+            opacity: 0.6; pointer-events: none;
+        }
+
+        /* --- TERMINAL --- */
+        #terminal-output {
+            height: 120px; overflow-y: hidden;
+            font-size: 0.7rem; color: var(--terminal-green);
+            line-height: 1.4;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="nebula-canvas"></canvas>
+
+    <div class="hud-overlay">
+        <div class="hud-panel" id="top-left-hud">
+            <div id="clock" class="glitch-text">00:00:00</div>
+            <div id="hijri-date" class="stat-value" style="color: var(--neon-blue);">LOADING...</div>
+            <div id="greg-date" class="stat-label">...</div>
+        </div>
+
+        <div class="hud-panel" id="top-right-hud">
+            <div class="stat-label">Core Engine FPS</div>
+            <div id="fps-meter" class="glitch-text" style="color: var(--neon-pink); font-size: 1.5rem;">0 FPS</div>
+            <div id="node-count" class="stat-label" style="color: #fff; margin-top: 10px;">NODES: 0</div>
+        </div>
+
+        <div class="hud-panel" id="bottom-left-hud">
+            <div class="stat-label" style="color: var(--terminal-green); border-bottom: 1px solid #1a3a1a; padding-bottom: 5px; margin-bottom: 10px;">
+                > TERMINAL DIAGNOSTICS
+            </div>
+            <div id="terminal-output">
+                <div>[SYSTEM] Booting Omniverse Engine...</div>
+                <div>[SYSTEM] Initializing Stardust Physics...</div>
+                <div>[SYSTEM] Solar Gravity Online.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="galaxy-viewport">
+        <div class="sun-core"></div>
+        </div>
+
+    <button id="toggle-config" onclick="toggleSidebar()">SYSTEM_CONFIG</button>
+
+    <div id="sidebar">
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 40px; letter-spacing: 5px;">CONFIGURATION</h2>
+        
+        <div class="setting-group">
+            <h3>QUANTUM REFRESH RATE (FPS)</h3>
+            <button class="action-btn active" id="btn-30" onclick="engine.setFPS(30)">30Hz - Efficient Mode</button>
+            <button class="action-btn" id="btn-60" onclick="engine.setFPS(60)">60Hz - Tactical Mode</button>
+            <button class="action-btn locked" id="btn-120" onclick="engine.unlock120()">120Hz - Locked [BIO-METRIC]</button>
+        </div>
+
+        <div class="setting-group">
+            <h3>PARTICLE PERSISTENCE</h3>
+            <div class="stat-label">TTL (Time To Live): 40,000ms</div>
+            <div class="stat-label">Color Mode: RGB Cycle</div>
+        </div>
+
+        <div class="setting-group">
+            <h3>ENGINE REBOOT</h3>
+            <button class="action-btn" onclick="location.reload()" style="color: var(--neon-pink); border-color: var(--neon-pink);">FORCE PURGE ALL CACHE</button>
+        </div>
+
+        <div style="margin-top: 100px; font-size: 0.6rem; color: #444;">
+            OMNIVERSE ENGINE v3.0.4 - STABLE BUILD
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           2. ENGINE CORE LOGIC (JAVASCRIPT)
+           =========================================
+        */
+
+        const engine = {
+            fps: 30,
+            lastFrameTime: performance.now(),
+            frameCount: 0,
+            entities: [],
+            asteroids: [],
+            is120Unlocked: false,
+            
+            // Database Planet
+            planets: [
+                { name: 'Utarid', dist: 90, size: 8, speed: 0.0012, color: '#888', angle: Math.random() * 6 },
+                { name: 'Zuhrah', dist: 130, size: 14, speed: 0.0009, color: '#e3bb76', angle: Math.random() * 6 },
+                { name: 'Bumi', dist: 180, size: 16, speed: 0.0007, color: '#00d2ff', angle: Math.random() * 6 },
+                { name: 'Marikh', dist: 230, size: 12, speed: 0.0005, color: '#ff4000', angle: Math.random() * 6 },
+                { name: 'Musytari', dist: 330, size: 40, speed: 0.0002, color: '#d39c7e', angle: Math.random() * 6 },
+                { name: 'Zuhal', dist: 430, size: 34, speed: 0.00015, color: '#c5ab6e', angle: Math.random() * 6 }
+            ],
+
+            // 1. Boot-up Sequence
+            init() {
+                this.generateSolarSystem();
+                this.generateAsteroids();
+                this.startClocks();
+                this.bindEvents();
+                requestAnimationFrame((t) => this.loop(t));
+                this.log("Engine initialized successfully.");
+            },
+
+            // 2. Solar System Generation
+            generateSolarSystem() {
+                const viewport = document.getElementById('galaxy-viewport');
+                this.planets.forEach(p => {
+                    // Create Orbit Ring
+                    const orbit = document.createElement('div');
+                    orbit.className = 'orbit-path';
+                    orbit.style.width = (p.dist * 2) + 'px';
+                    orbit.style.height = (p.dist * 2) + 'px';
+                    viewport.appendChild(orbit);
+
+                    // Create Planet Element
+                    const el = document.createElement('div');
+                    el.className = 'planet-node';
+                    el.style.width = p.size + 'px';
+                    el.style.height = p.size + 'px';
+                    el.style.background = p.color;
+                    el.style.boxShadow = `0 0 20px ${p.color}`;
+                    viewport.appendChild(el);
+                    p.dom = el;
+                });
+            },
+
+            // 3. Asteroid Belt System
+            generateAsteroids() {
+                const viewport = document.getElementById('galaxy-viewport');
+                for(let i=0; i<150; i++) {
+                    const ast = document.createElement('div');
+                    ast.className = 'asteroid';
+                    const dist = 260 + (Math.random() * 40);
+                    const size = Math.random() * 3 + 1;
+                    ast.style.width = size + 'px';
+                    ast.style.height = size + 'px';
+                    viewport.appendChild(ast);
+                    
+                    this.asteroids.push({
+                        dom: ast,
+                        dist: dist,
+                        speed: (Math.random() * 0.0003) + 0.0001,
+                        angle: Math.random() * Math.PI * 2
+                    });
+                }
+            },
+
+            // 4. Main Animation Loop
+            loop(timestamp) {
+                const delta = timestamp - this.lastFrameTime;
+                const interval = 1000 / this.fps;
+
+                if (delta > interval) {
+                    this.lastFrameTime = timestamp - (delta % interval);
+                    
+                    // Update Planets Position
+                    this.planets.forEach(p => {
+                        p.angle += p.speed * delta;
+                        const x = Math.cos(p.angle) * p.dist;
+                        const y = Math.sin(p.angle) * p.dist;
+                        p.dom.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                    });
+
+                    // Update Asteroids Position
+                    this.asteroids.forEach(a => {
+                        a.angle += a.speed * delta;
+                        const x = Math.cos(a.angle) * a.dist;
+                        const y = Math.sin(a.angle) * a.dist;
+                        a.dom.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                    });
+
+                    // Performance Tracking
+                    this.frameCount++;
+                    if(this.frameCount % 5 === 0) {
+                        document.getElementById('fps-meter').innerText = Math.round(1000 / delta) + " FPS";
+                        document.getElementById('node-count').innerText = "NODES: " + document.querySelectorAll('*').length;
+                    }
+                }
+                requestAnimationFrame((t) => this.loop(t));
+            },
+
+            // 5. RGB Particle Engine (40s Life)
+            spawnStardust(x, y) {
+                const p = document.createElement('div');
+                p.className = 'stardust-particle';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                
+                const size = Math.random() * 6 + 2;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.animationDelay = `0s, -${Math.random() * 3}s`;
+                
+                document.body.appendChild(p);
+
+                // Garbage Collection after 40s
+                setTimeout(() => p.remove(), 40000);
+            },
+
+            // 6. HUD & Clocks
+            startClocks() {
+                const update = () => {
+                    const now = new Date();
+                    document.getElementById('clock').innerText = now.toLocaleTimeString('ms-MY', { hour12: false });
+                    document.getElementById('greg-date').innerText = now.toLocaleDateString('ms-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).toUpperCase();
+                    
+                    const hijri = new Intl.DateTimeFormat('ms-MY-u-ca-islam-uma', {day:'numeric', month:'long', year:'numeric'}).format(now);
+                    document.getElementById('hijri-date').innerText = hijri.toUpperCase();
+                };
+                setInterval(update, 1000);
+                update();
+            },
+
+            // 7. System Event Binding
+            bindEvents() {
+                document.addEventListener('mousemove', (e) => this.spawnStardust(e.clientX, e.clientY));
+            },
+
+            // 8. Logic Settings
+            setFPS(val) {
+                this.fps = val;
+                this.log(`FPS target changed to ${val}Hz.`);
+                document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btn-' + val).classList.add('active');
+            },
+
+            unlock120() {
+                const key = prompt("PENGESAHAN BIOMETRIK DIPERLUKAN. MASUKKAN KOD AKSES:");
+                if(key === "SUPER-SAIYAN-120") {
+                    this.is120Unlocked = true;
+                    const btn = document.getElementById('btn-120');
+                    btn.classList.remove('locked');
+                    btn.innerText = "120Hz - Ultra Mode [ACTIVE]";
+                    btn.onclick = () => this.setFPS(120);
+                    this.setFPS(120);
+                    this.log("CRITICAL: 120Hz system unlock approved.");
+                } else {
+                    this.log("Security Alert: Unauthorized access attempt.");
+                    alert("Akses Ditolak. Kod Salah!");
+                }
+            },
+
+            log(msg) {
+                const output = document.getElementById('terminal-output');
+                const div = document.createElement('div');
+                div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                output.prepend(div);
+                if(output.childNodes.length > 8) output.lastChild.remove();
+            }
+        };
+
+        // UI Helpers
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Run Engine
+        window.onload = () => engine.init();
+
+    </script>
+</body>
+</html>
