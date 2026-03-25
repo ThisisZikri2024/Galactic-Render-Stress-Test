@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omniverse Engine v3.1 | Touch Supported</title>
+    <title>Omniverse Engine v3.2 | OVERDRIVE UNLOCKED</title>
     <style>
         /* =========================================
-           1. CORE SYSTEM ARCHITECTURE (CSS)
+           1. CORE SYSTEM ARCHITECTURE
            =========================================
         */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;500&display=swap');
@@ -17,7 +17,7 @@
             --neon-pink: #ff007a;
             --terminal-green: #00ff41;
             --space-black: #020205;
-            --panel-bg: rgba(10, 15, 30, 0.9);
+            --panel-bg: rgba(10, 15, 30, 0.95);
         }
 
         * { 
@@ -31,13 +31,7 @@
             color: #ffffff;
             font-family: 'JetBrains Mono', monospace;
             overflow: hidden;
-            touch-action: none; /* Menghalang zoom/scroll tidak sengaja pada mobile */
-        }
-
-        /* --- BACKGROUND ENGINE --- */
-        #nebula-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2; opacity: 0.6;
+            touch-action: none;
         }
 
         /* --- RGB PARTICLE ENGINE --- */
@@ -48,16 +42,15 @@
         }
 
         @keyframes particle-death {
-            0% { transform: scale(2); opacity: 1; filter: blur(0px); }
-            50% { opacity: 1; }
-            100% { transform: scale(0.1) translateY(100px); opacity: 0; filter: blur(5px); }
+            0% { transform: scale(2.5); opacity: 1; filter: blur(0px); }
+            100% { transform: scale(0); translateY(150px); opacity: 0; filter: blur(8px); }
         }
 
         @keyframes rgb-cycle {
-            0% { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
-            33% { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
-            66% { background: #0000ff; box-shadow: 0 0 10px #0000ff; }
-            100% { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            0% { background: #ff0000; box-shadow: 0 0 12px #ff0000; }
+            33% { background: #00ff00; box-shadow: 0 0 12px #00ff00; }
+            66% { background: #0000ff; box-shadow: 0 0 12px #0000ff; }
+            100% { background: #ff0000; box-shadow: 0 0 12px #ff0000; }
         }
 
         /* --- UI: HUD SYSTEM --- */
@@ -69,107 +62,91 @@
         .hud-panel {
             position: absolute; pointer-events: auto;
             background: var(--panel-bg);
-            border: 1px solid rgba(0, 210, 255, 0.2);
-            padding: 15px; backdrop-filter: blur(15px);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 15px; backdrop-filter: blur(20px);
         }
 
         #top-left-hud { top: 20px; left: 20px; border-left: 5px solid var(--neon-blue); }
         #top-right-hud { top: 20px; right: 20px; border-right: 5px solid var(--neon-pink); text-align: right; }
-        #bottom-left-hud { bottom: 85px; left: 20px; width: 260px; height: 150px; }
+        #bottom-left-hud { bottom: 90px; left: 20px; width: 280px; height: 140px; }
 
         .glitch-text {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem; color: var(--neon-blue);
+            font-size: 1.6rem; color: var(--neon-blue);
             text-shadow: 2px 2px var(--neon-pink);
+            letter-spacing: 2px;
         }
 
-        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 2px; }
+        .stat-label { font-size: 0.65rem; color: #888; text-transform: uppercase; }
         .stat-value { font-size: 0.9rem; color: #fff; font-weight: bold; }
 
         /* --- SETTINGS SIDEBAR --- */
         #sidebar {
-            position: fixed; top: 0; right: -100%; width: 320px; height: 100%;
-            background: rgba(5, 5, 10, 0.98); border-left: 2px solid var(--neon-blue);
-            z-index: 1000; transition: 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            padding: 50px 30px; overflow-y: auto;
+            position: fixed; top: 0; right: -100%; width: 340px; height: 100%;
+            background: rgba(2, 2, 5, 0.98); border-left: 2px solid var(--neon-pink);
+            z-index: 1000; transition: 0.4s ease-in-out;
+            padding: 60px 30px; overflow-y: auto;
         }
 
         #sidebar.open { right: 0; }
 
-        .setting-group { margin-bottom: 30px; }
+        .setting-group { margin-bottom: 35px; }
         .setting-group h3 { 
-            font-family: 'Orbitron'; font-size: 0.75rem; color: var(--neon-blue); 
-            margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 8px;
+            font-family: 'Orbitron'; font-size: 0.8rem; color: var(--neon-pink); 
+            margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;
         }
 
         .action-btn {
-            width: 100%; padding: 12px; background: rgba(255,255,255,0.03);
-            border: 1px solid #333; color: #fff; font-family: 'JetBrains Mono';
-            cursor: pointer; transition: 0.2s; margin-bottom: 8px; text-align: left;
+            width: 100%; padding: 14px; background: rgba(255,255,255,0.05);
+            border: 1px solid #444; color: #fff; font-family: 'JetBrains Mono';
+            cursor: pointer; transition: 0.2s; margin-bottom: 10px; text-align: left;
+            border-radius: 4px;
         }
 
-        .action-btn:hover, .action-btn:active { background: rgba(0, 210, 255, 0.1); border-color: var(--neon-blue); }
-        .action-btn.active { background: var(--neon-blue); color: #000; font-weight: bold; }
-        .action-btn.locked { color: #444; border-style: dashed; }
+        .action-btn:active { transform: scale(0.98); background: var(--neon-blue); color: #000; }
+        .action-btn.active { background: var(--neon-blue); color: #000; border-color: var(--neon-blue); font-weight: bold; }
 
         #toggle-config {
             position: fixed; bottom: 20px; right: 20px;
-            background: var(--neon-blue); color: #000; padding: 12px 24px;
+            background: var(--neon-pink); color: #fff; padding: 15px 30px;
             font-family: 'Orbitron'; font-weight: bold; border: none;
-            cursor: pointer; z-index: 1001; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
-            border-radius: 4px;
+            cursor: pointer; z-index: 1001; box-shadow: 0 0 25px rgba(255, 0, 122, 0.5);
         }
 
         /* --- VIEWPORT ENGINE --- */
         #galaxy-viewport {
             width: 100vw; height: 100vh;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1200px;
         }
 
         .sun-core {
-            width: 70px; height: 70px; border-radius: 50%;
+            width: 80px; height: 80px; border-radius: 50%;
             background: radial-gradient(circle, #fff, #ffae00, #ff4000);
-            box-shadow: 0 0 60px #ff6600, 0 0 120px rgba(255, 100, 0, 0.3);
-            z-index: 50;
+            box-shadow: 0 0 80px #ff6600; z-index: 50;
         }
 
         .orbit-path {
-            position: absolute; border: 1px solid rgba(0, 210, 255, 0.08);
+            position: absolute; border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%; pointer-events: none;
         }
 
-        .planet-node {
-            position: absolute; border-radius: 50%;
-            cursor: pointer; transition: 0.3s;
-        }
-
-        .asteroid {
-            position: absolute; background: #555; border-radius: 2px;
-            opacity: 0.6; pointer-events: none;
-        }
+        .planet-node { position: absolute; border-radius: 50%; cursor: pointer; }
+        .asteroid { position: absolute; background: #666; border-radius: 2px; pointer-events: none; }
 
         /* --- TERMINAL --- */
         #terminal-output {
             height: 100px; overflow-y: hidden;
-            font-size: 0.65rem; color: var(--terminal-green);
-            line-height: 1.3;
+            font-size: 0.7rem; color: var(--terminal-green);
         }
 
-        /* Responsive Fixes */
         @media (max-width: 600px) {
             #sidebar { width: 100%; }
-            .sun-core { width: 50px; height: 50px; }
-            #bottom-left-hud { width: 200px; font-size: 0.6rem; }
-            .glitch-text { font-size: 1.2rem; }
+            #bottom-left-hud { width: 220px; bottom: 80px; }
         }
 
     </style>
 </head>
 <body>
-
-    <canvas id="nebula-canvas"></canvas>
 
     <div class="hud-overlay">
         <div class="hud-panel" id="top-left-hud">
@@ -179,19 +156,17 @@
         </div>
 
         <div class="hud-panel" id="top-right-hud">
-            <div class="stat-label">Core Engine FPS</div>
-            <div id="fps-meter" class="glitch-text" style="color: var(--neon-pink); font-size: 1.2rem;">0 FPS</div>
-            <div id="node-count" class="stat-label" style="color: #fff; margin-top: 5px;">NODES: 0</div>
+            <div class="stat-label">ENGINE STATUS: <span id="engine-status" style="color:var(--terminal-green)">UNLOCKED</span></div>
+            <div id="fps-meter" class="glitch-text" style="color: var(--neon-pink); font-size: 1.8rem;">0 FPS</div>
+            <div id="node-count" class="stat-label">PARTICLES: 0</div>
         </div>
 
         <div class="hud-panel" id="bottom-left-hud">
-            <div class="stat-label" style="color: var(--terminal-green); border-bottom: 1px solid #1a3a1a; padding-bottom: 5px; margin-bottom: 10px;">
-                > DIAGNOSTICS [MOBILE_READY]
-            </div>
+            <div class="stat-label" style="color: var(--terminal-green);">> OVERDRIVE_LOG</div>
             <div id="terminal-output">
-                <div>[SYSTEM] Omniverse v3.1 Booting...</div>
-                <div>[SYSTEM] Touch Interface Enabled.</div>
-                <div>[SYSTEM] Multi-Gesture Ready.</div>
+                <div>[SYS] v3.2 OVERDRIVE Ready.</div>
+                <div>[SYS] All FPS Locks Removed.</div>
+                <div>[SYS] Touch Engine Active.</div>
             </div>
         </div>
     </div>
@@ -200,28 +175,27 @@
         <div class="sun-core"></div>
     </div>
 
-    <button id="toggle-config" onclick="toggleSidebar()">CONFIG</button>
+    <button id="toggle-config" onclick="toggleSidebar()">ENGINE_MENU</button>
 
     <div id="sidebar">
-        <h2 style="font-family: 'Orbitron'; margin-bottom: 30px; letter-spacing: 3px;">SYSTEM SETTINGS</h2>
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 30px; color: var(--neon-blue);">BEYOND LIMITS</h2>
         
         <div class="setting-group">
-            <h3>REFRESH RATE (FPS)</h3>
-            <button class="action-btn active" id="btn-30" onclick="engine.setFPS(30)">30Hz - Power Saver</button>
-            <button class="action-btn" id="btn-60" onclick="engine.setFPS(60)">60Hz - Standard</button>
-            <button class="action-btn locked" id="btn-120" onclick="engine.unlock120()">120Hz - Locked [ADMIN]</button>
+            <h3>SELECT REFRESH FREQUENCY</h3>
+            <button class="action-btn" id="btn-30" onclick="engine.setFPS(30)">30Hz (Power Save)</button>
+            <button class="action-btn" id="btn-60" onclick="engine.setFPS(60)">60Hz (Standard)</button>
+            <button class="action-btn active" id="btn-120" onclick="engine.setFPS(120)">120Hz (Pro Display)</button>
+            <button class="action-btn" id="btn-240" onclick="engine.setFPS(240)" style="border-color:var(--neon-pink)">MAX UNLIMITED (Override)</button>
         </div>
 
         <div class="setting-group">
-            <h3>PARTICLE PERSISTENCE</h3>
-            <div class="stat-label">TTL: 40,000ms</div>
-            <div class="stat-label">Input: Mouse & Multi-Touch</div>
+            <h3>DIAGNOSTIC DATA</h3>
+            <div class="stat-label">Touch Nodes: Supported</div>
+            <div class="stat-label">Particle Persistence: 40s</div>
+            <div class="stat-label">Garbage Collection: Active</div>
         </div>
 
-        <div class="setting-group">
-            <h3>ENGINE REBOOT</h3>
-            <button class="action-btn" onclick="location.reload()" style="color: var(--neon-pink); border-color: var(--neon-pink);">FORCE PURGE CACHE</button>
-        </div>
+        <button class="action-btn" onclick="location.reload()" style="background:var(--neon-pink); color:#fff; border:none; text-align:center;">RESET ALL SYSTEMS</button>
     </div>
 
     <script>
@@ -231,20 +205,18 @@
         */
 
         const engine = {
-            fps: 30,
+            fps: 120,
             lastFrameTime: performance.now(),
             frameCount: 0,
-            entities: [],
             asteroids: [],
-            is120Unlocked: false,
             
             planets: [
-                { name: 'Utarid', dist: 70, size: 6, speed: 0.0015, color: '#888', angle: Math.random() * 6 },
-                { name: 'Zuhrah', dist: 100, size: 10, speed: 0.0011, color: '#e3bb76', angle: Math.random() * 6 },
-                { name: 'Bumi', dist: 140, size: 12, speed: 0.0008, color: '#00d2ff', angle: Math.random() * 6 },
-                { name: 'Marikh', dist: 180, size: 9, speed: 0.0006, color: '#ff4000', angle: Math.random() * 6 },
-                { name: 'Musytari', dist: 250, size: 28, speed: 0.0003, color: '#d39c7e', angle: Math.random() * 6 },
-                { name: 'Zuhal', dist: 320, size: 24, speed: 0.0002, color: '#c5ab6e', angle: Math.random() * 6 }
+                { dist: 80, size: 7, speed: 0.0018, color: '#aaa', angle: Math.random()*6 },
+                { dist: 110, size: 12, speed: 0.0013, color: '#e3bb76', angle: Math.random()*6 },
+                { dist: 150, size: 14, speed: 0.0009, color: '#00d2ff', angle: Math.random()*6 },
+                { dist: 190, size: 10, speed: 0.0007, color: '#ff4000', angle: Math.random()*6 },
+                { dist: 270, size: 32, speed: 0.0004, color: '#d39c7e', angle: Math.random()*6 },
+                { dist: 350, size: 28, speed: 0.0002, color: '#c5ab6e', angle: Math.random()*6 }
             ],
 
             init() {
@@ -253,7 +225,7 @@
                 this.startClocks();
                 this.bindEvents();
                 requestAnimationFrame((t) => this.loop(t));
-                this.log("Omniverse Engine 3.1 Online.");
+                this.log("All FPS restrictions bypassed.");
             },
 
             generateSolarSystem() {
@@ -267,10 +239,8 @@
 
                     const el = document.createElement('div');
                     el.className = 'planet-node';
-                    el.style.width = p.size + 'px';
-                    el.style.height = p.size + 'px';
-                    el.style.background = p.color;
-                    el.style.boxShadow = `0 0 15px ${p.color}`;
+                    el.style.width = p.size + 'px'; el.style.height = p.size + 'px';
+                    el.style.background = p.color; el.style.boxShadow = `0 0 15px ${p.color}`;
                     viewport.appendChild(el);
                     p.dom = el;
                 });
@@ -278,22 +248,14 @@
 
             generateAsteroids() {
                 const viewport = document.getElementById('galaxy-viewport');
-                const count = window.innerWidth < 600 ? 60 : 120; // Kurangkan asteroid pada mobile untuk performance
+                const count = window.innerWidth < 600 ? 80 : 180;
                 for(let i=0; i<count; i++) {
                     const ast = document.createElement('div');
                     ast.className = 'asteroid';
-                    const dist = 200 + (Math.random() * 30);
-                    const size = Math.random() * 2 + 1;
-                    ast.style.width = size + 'px';
-                    ast.style.height = size + 'px';
+                    const dist = 215 + (Math.random() * 35);
+                    ast.style.width = (Math.random()*3+1)+'px'; ast.style.height = ast.style.width;
                     viewport.appendChild(ast);
-                    
-                    this.asteroids.push({
-                        dom: ast,
-                        dist: dist,
-                        speed: (Math.random() * 0.0004) + 0.0001,
-                        angle: Math.random() * Math.PI * 2
-                    });
+                    this.asteroids.push({ dom: ast, dist: dist, speed: (Math.random()*0.0005)+0.0001, angle: Math.random()*Math.PI*2 });
                 }
             },
 
@@ -321,7 +283,7 @@
                     this.frameCount++;
                     if(this.frameCount % 5 === 0) {
                         document.getElementById('fps-meter').innerText = Math.round(1000 / delta) + " FPS";
-                        document.getElementById('node-count').innerText = "NODES: " + document.querySelectorAll('.stardust-particle').length;
+                        document.getElementById('node-count').innerText = "PARTICLES: " + document.querySelectorAll('.stardust-particle').length;
                     }
                 }
                 requestAnimationFrame((t) => this.loop(t));
@@ -330,14 +292,10 @@
             spawnStardust(x, y) {
                 const p = document.createElement('div');
                 p.className = 'stardust-particle';
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                
-                const size = Math.random() * 5 + 2;
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
+                p.style.left = x + 'px'; p.style.top = y + 'px';
+                const size = Math.random() * 6 + 2;
+                p.style.width = size + 'px'; p.style.height = size + 'px';
                 p.style.animationDelay = `0s, -${Math.random() * 3}s`;
-                
                 document.body.appendChild(p);
                 setTimeout(() => p.remove(), 40000);
             },
@@ -346,52 +304,38 @@
                 const update = () => {
                     const now = new Date();
                     document.getElementById('clock').innerText = now.toLocaleTimeString('ms-MY', { hour12: false });
-                    document.getElementById('greg-date').innerText = now.toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric' }).toUpperCase();
-                    
                     const hijri = new Intl.DateTimeFormat('ms-MY-u-ca-islam-uma', {day:'numeric', month:'long', year:'numeric'}).format(now);
                     document.getElementById('hijri-date').innerText = hijri.toUpperCase();
+                    document.getElementById('greg-date').innerText = now.toLocaleDateString('ms-MY', {day:'numeric', month:'short', year:'numeric'}).toUpperCase();
                 };
                 setInterval(update, 1000);
                 update();
             },
 
             bindEvents() {
-                // Mouse Events
                 document.addEventListener('mousemove', (e) => this.spawnStardust(e.clientX, e.clientY));
-
-                // Touch Events (Multi-touch support)
                 document.addEventListener('touchstart', (e) => {
-                    Array.from(e.touches).forEach(touch => {
-                        this.spawnStardust(touch.clientX, touch.clientY);
-                    });
+                    Array.from(e.touches).forEach(t => this.spawnStardust(t.clientX, t.clientY));
                 }, {passive: true});
-
                 document.addEventListener('touchmove', (e) => {
-                    Array.from(e.touches).forEach(touch => {
-                        this.spawnStardust(touch.clientX, touch.clientY);
-                    });
+                    Array.from(e.touches).forEach(t => this.spawnStardust(t.clientX, t.clientY));
                 }, {passive: true});
             },
 
             setFPS(val) {
                 this.fps = val;
-                this.log(`FPS: ${val}Hz.`);
+                this.log(`Target set to ${val}Hz.`);
                 document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btn-' + val).classList.add('active');
-            },
-
-            unlock120() {
-                const key = prompt("ADMIN CODE:");
-                if(key === "SUPER-SAIYAN-120") {
-                    this.is120Unlocked = true;
-                    const btn = document.getElementById('btn-120');
-                    btn.classList.remove('locked');
-                    btn.innerText = "120Hz - ACTIVE";
-                    btn.onclick = () => this.setFPS(120);
-                    this.setFPS(120);
-                    this.log("120Hz Unlocked.");
+                const btnId = val === 240 ? 'btn-240' : 'btn-' + val;
+                const activeBtn = document.getElementById(btnId);
+                if(activeBtn) activeBtn.classList.add('active');
+                
+                if(val > 120) {
+                    document.getElementById('engine-status').innerText = "OVERDRIVE";
+                    document.getElementById('engine-status').style.color = "var(--neon-pink)";
                 } else {
-                    alert("Denied.");
+                    document.getElementById('engine-status').innerText = "STABLE";
+                    document.getElementById('engine-status').style.color = "var(--terminal-green)";
                 }
             },
 
@@ -400,14 +344,11 @@
                 const div = document.createElement('div');
                 div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
                 output.prepend(div);
-                if(output.childNodes.length > 6) output.lastChild.remove();
+                if(output.childNodes.length > 5) output.lastChild.remove();
             }
         };
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         window.onload = () => engine.init();
 
     </script>
